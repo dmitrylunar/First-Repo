@@ -1,5 +1,6 @@
 import datetime, json, psycopg2
 """Подключение библиотек """
+"""Check git"""
 class Client:
     def __init__(self, date, name, age, num):
         """Создание клиента с параметрами"""

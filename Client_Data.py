@@ -69,8 +69,8 @@ def client_list():
     with open("clients.json", "r") as file:
         response = json.load(file)
         for client in response:
-            print('\nИмя: ', client["name"], '\nДата: ', client["date"], '\nВозраст: ', client["age"], '\nНомер: ',
-                  client["num"])
+            print('\nИмя: ', client["name"], '\nНомер телефона: ', client["number"], '\nEmail: ',
+                  client["email"])
 
 
 def find_client_with_num():
@@ -120,4 +120,4 @@ def menu():
     else:
         print("Вы ввели что-то не так")
 
-add_client()
+menu()

@@ -1,52 +1,72 @@
 import datetime, json
+
 class Client:
-    def __init__(self, date, name, age, num):
+    def __init__(self, name, number, email):
         """Создание клиента с параметрами"""
-        self.date = date
         self.name = name
-        self.age = age
-        self.num = num
-        print  ("\nЗапись создана!\n")
+        self.number = number
+        self.email = email
+
     def show_info(self):
         """Вывод информации о клиенте"""
-        print (self.date)
         print (self.name)
-        print (self.age)
-        print (self.num)
+        print (self.number)
+        print (self.email)
+
     def to_dict(self):
         """Возврат списка параметров клиента"""
-        return {'date': self.date, 'name': self.name, 'age': self.age, 'num': self.num}
+        return {'name': self.name, 'number': self.number, 'email': self.email}
+
+def user_input():
+    user_in = input("Ввод: ")
+    return user_in
+
+def valid_name(name):
+    while name == "" or not name.isalpha():
+        name = input("Имя клиента должно содержать только буквы!\nВведите имя: ")
+    else:
+        return name
+
+def valid_number(number):
+    while number == "" or not number.isdigit() or len(number) != 11:
+        number = input('Введите корректный номер из 11 цифр!\nВедите номер: ')
+    else:
+        return number
+
+def valid_email(email):
+    while email == "":
+        email = input('Введите email: ')
+    else :
+        return email
+
+
 
 def add_client():
         """Создание клиента с введенными данными и возврат объекта new_client"""
         print ("Дата записи: ", datetime.date.today())
-        client_date = datetime.date.today()
-        client_date = client_date.strftime("%Y-%m-%d")
         print("Введите данные о клиенте...")
-        client_name = input("Имя клиента: ")
-        while client_name == "" or not client_name.isalpha():
-            client_name = input("Имя клиента должно содержать только буквы и содержать хотя бы один символ!\nВведите имя: ")
-        client_age = input("Возраст клиента: ")
-        while client_age == "" or not client_age.isdigit() or int(client_age) <= 0 or int(client_age) >= 100:
-            client_age = input("Возраст не может быть меньше 0 или больше 99, а так же содержать только буквы!\nВозраст клиента: ")
-        client_num = input("Номер клиента: ")
-        while client_num == "" or not client_num.isdigit() or len(client_num) != 11:
-            client_num = input("Введите коректный номер из 11 цифр!\nВведите номер: ")
-        new_client = Client(client_date, client_name, client_age, client_num)
-        return new_client
+        print ("Имя клиента: ")
+        client_name = valid_name(user_input())
+        print("Номер клиента: ")
+        client_number = valid_number(user_input())
+        print("Емейл клиента: ")
+        client_email = valid_email(user_input())
+        adding_client = Client(client_name, client_number, client_email)
+        ready_client = adding_client.to_dict()
+        return ready_client
 
-def save_client():
+
+def save_client(saving_client):
     """Создание и запись клиента с данными от пользователя"""
-    saving_client = add_client().to_dict()
-    with open("../../clients.json", "r") as file:
+    with open("clients.json", "r") as file:
         data = json.load(file)
         data.append(saving_client)
-    with open("../../clients.json", "w") as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+    with open("clients.json", "w") as file:
+        json.dump(data, file, indent=4)
     print("Клиент сохранен!")
 
 def client_list():
-    with open("../../clients.json", "r") as file:
+    with open("clients.json", "r") as file:
         response = json.load(file)
         for client in response:
             print('\nИмя: ', client["name"], '\nДата: ', client["date"], '\nВозраст: ', client["age"], '\nНомер: ',
@@ -90,7 +110,7 @@ def menu():
         "\nЧтобы закрыть программу, введите 0")
     choose = input("Выберете пункт меню : ")
     if choose == "1":
-        save_client()
+        save_client(add_client())
     elif choose == "2":
         client_list()
     elif choose == "3":
@@ -100,6 +120,4 @@ def menu():
     else:
         print("Вы ввели что-то не так")
 
-check_data()
-print ("meesege for test Git")
-menu()
+add_client()

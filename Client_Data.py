@@ -1,4 +1,6 @@
-import datetime, json
+import datetime, json, re
+import time
+
 
 class Client:
     def __init__(self, name, number, email):
@@ -72,30 +74,35 @@ def client_list():
             print('\nИмя: ', client["name"], '\nНомер телефона: ', client["number"], '\nEmail: ',
                   client["email"])
 
+def search_input():
+    print('Введите данные для поиска: ')
+    search_info = user_input()
+    return search_info
 
-def find_client_with_num():
-    find = input("Введите данные для поиска: ")
-    while find == "":
-        find = input("Введите корректный запрос: ")
-    with open("../../clients.json", "r") as file:
+def find_client(search_info):
+    with open("clients.json", "r") as file:
         response = json.load(file)
-        found = False
+        found = []
         for client in response:
-            if find == client["num"] or find == client["name"] or find == client["date"] or find == client["age"]:
-                print('Имя: ', client["name"], '\nДата: ', client["date"], '\nВозраст: ', client["age"], '\nНомер: ',
-                      client["num"])
-                found = True
-                break
-        if not found:
-            print('Клиент не обнаружен!')
+            client_obj = Client(**client)
+            if re.search(re.escape(search_info), str(client_obj.to_dict()), re.I):
+                    found.append(client_obj)
+    return found
+
+def show_finding_client(found):
+    if found :
+        for client in found:
+            print('Имя клиента: ', client.name,'\n''Номер клиента: ',client.number,'\n''Емейл клиента: ', client.email, '\n')
+    else :
+        print('Совпадений не найдено')
 
 def check_data():
     try:
-        file = open("../../clients.json", "r")
-        json.load(file)
+        with open("clients.json", "r") as file:
+            json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        file = open("../../clients.json", "w")
-        file.write("[]")
+        with open("clients.json", "w") as file:
+            file.write("[]")
 
 def menu():
     """Вызов меню
@@ -103,21 +110,28 @@ def menu():
     2 - Выведение списка клиентов
     3 - Поиск клиента по номеру
     0 - Выход из программы"""
+    check_data()
+    while True:
+        print ("\n""Выберете операцию: "
+            "\nЧтобы добавить клиента в базу, введите 1"
+            "\nЧтобы посмотреть всю базу клиентов, введите 2"
+            "\nЧтобы найти клиента, введите 3"
+            "\nЧтобы закрыть программу, введите 0")
+        choose = user_input()
 
-    print ("Выберете операцию: \nЧтобы добавить клиента в базу, введите 1"
-        "\nЧтобы посмотреть всю базу клиентов, введите 2"
-        "\nЧтобы найти данные клиента по номеру телефона, введите 3"
-        "\nЧтобы закрыть программу, введите 0")
-    choose = input("Выберете пункт меню : ")
-    if choose == "1":
-        save_client(add_client())
-    elif choose == "2":
-        client_list()
-    elif choose == "3":
-        find_client_with_num()
-    elif choose == "0":
-        pass
-    else:
-        print("Вы ввели что-то не так")
+        if choose == "1":
+            save_client(add_client())
+        elif choose == "2":
+            client_list()
+        elif choose == "3":
+            show_finding_client(find_client(search_input()))
+        elif choose == "0":
+            print('Завершение программы...')
+            break
+        else:
+            print("Вы ввели что-то не так")
+        time.sleep(1.5)
+
+
 
 menu()

@@ -20,22 +20,26 @@ class Client:
         return {'name': self.name, 'number': self.number, 'email': self.email}
 
 def user_input():
+    """Пользовательский ввод"""
     user_in = input("Ввод: ")
     return user_in
 
 def valid_name(name):
+    """Валидация Имени"""
     while name == "" or not name.isalpha():
         name = input("Имя клиента должно содержать только буквы!\nВведите имя: ")
     else:
         return name
 
 def valid_number(number):
+    """Валидация номера телефона"""
     while number == "" or not number.isdigit() or len(number) != 11:
         number = input('Введите корректный номер из 11 цифр!\nВедите номер: ')
     else:
         return number
 
 def valid_email(email):
+    """Валидация Email"""
     while email == "":
         email = input('Введите email: ')
     else :
@@ -68,6 +72,7 @@ def save_client(saving_client):
     print("Клиент сохранен!")
 
 def client_list():
+    """Вывод списка клиентов"""
     with open("clients.json", "r") as file:
         response = json.load(file)
         for client in response:
@@ -75,11 +80,13 @@ def client_list():
                   client["email"])
 
 def search_input():
+    """Введение параметра для поиска"""
     print('Введите данные для поиска: ')
     search_info = user_input()
     return search_info
 
 def find_client(search_info):
+    """Поиск клиента по параметру(работает по всем полям)"""
     with open("clients.json", "r") as file:
         response = json.load(file)
         found = []
@@ -90,6 +97,7 @@ def find_client(search_info):
     return found
 
 def show_finding_client(found):
+    """Отображение найденных клиентов с помощью поиска"""
     if found :
         for client in found:
             print('Имя клиента: ', client.name,'\n''Номер клиента: ',client.number,'\n''Емейл клиента: ', client.email, '\n')
@@ -97,6 +105,7 @@ def show_finding_client(found):
         print('Совпадений не найдено')
 
 def check_data():
+    """Проверка наличия файла json"""
     try:
         with open("clients.json", "r") as file:
             json.load(file)
@@ -107,8 +116,8 @@ def check_data():
 def menu():
     """Вызов меню
     1 - Создание и запись клиента
-    2 - Выведение списка клиентов
-    3 - Поиск клиента по номеру
+    2 - Вывод списка клиентов
+    3 - Поиск клиента
     0 - Выход из программы"""
     check_data()
     while True:

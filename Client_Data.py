@@ -19,6 +19,20 @@ class Client:
         """Возврат списка параметров клиента"""
         return {'name': self.name, 'number': self.number, 'email': self.email}
 
+def consolidate(func):
+    def wrapper(*args, **kwargs):
+        print ("Выполнить операцию? Y/N :")
+        par = user_input()
+        if par.lower() == "y":
+            return func(*args, **kwargs)
+        if par.lower() == "n":
+            print ("Операция отменена...")
+            return None
+        else:
+            print("Вы ввели что-то не так...")
+            return None
+    return wrapper
+
 def user_input():
     """Пользовательский ввод"""
     user_in = input("Ввод: ")
@@ -71,6 +85,38 @@ def save_client(saving_client):
         json.dump(data, file, indent=4)
     print("Клиент сохранен!")
 
+@consolidate
+def delete_client(client):
+    with open("clients.json", "r") as file:
+        data = json.load(file)
+        data.remove(client.to_dict())
+    with open("clients.json", "w") as file:
+        json.dump(data, file, indent=4)
+        print("Клиент удален...")
+
+def delete_finding_client():
+    client_list()
+    print ('Введите номер клиента, которого хотите удалить...')
+    choose = valid_number(user_input())
+    client_to_delete = None
+    with open("clients.json", "r") as file:
+        response = json.load(file)
+        for client in response:
+            if choose == str(client["number"]):
+                client_to_delete = Client(**client)
+                print(client_to_delete.to_dict())
+                break
+
+    if client_to_delete is None:
+        print("Клиент не обнаружен")
+    else:
+        delete_client(client_to_delete)
+
+
+
+
+
+
 def client_list():
     """Вывод списка клиентов"""
     with open("clients.json", "r") as file:
@@ -118,6 +164,7 @@ def menu():
     1 - Создание и запись клиента
     2 - Вывод списка клиентов
     3 - Поиск клиента
+    4 - удаление клиента по номеру
     0 - Выход из программы"""
     check_data()
     while True:
@@ -125,22 +172,22 @@ def menu():
             "\nЧтобы добавить клиента в базу, введите 1"
             "\nЧтобы посмотреть всю базу клиентов, введите 2"
             "\nЧтобы найти клиента, введите 3"
+            "\nЧтобы удалить клиента из списка, введите 4"
             "\nЧтобы закрыть программу, введите 0")
         choose = user_input()
-
         if choose == "1":
             save_client(add_client())
         elif choose == "2":
             client_list()
         elif choose == "3":
             show_finding_client(find_client(search_input()))
+        elif choose == "4":
+            delete_finding_client()
         elif choose == "0":
             print('Завершение программы...')
             break
         else:
             print("Вы ввели что-то не так")
         time.sleep(1.5)
-
-
 
 menu()

@@ -1,6 +1,12 @@
-import datetime, json, re
-import time
+import datetime, psycopg2, time
 
+conn = psycopg2.connect(
+    host='localhost',
+    user='postgres',
+    password='qds123pprt',
+    database='clients_db'
+)
+cur = conn.cursor()
 
 class Client:
     def __init__(self, name, number, email):
@@ -59,7 +65,11 @@ def valid_email(email):
     else :
         return email
 
-
+def valid_id(id):
+    while id == "" or not id.isdigit():
+        id = input('Введите корректный id: ')
+    else:
+        return id
 
 def add_client():
         """Создание клиента с введенными данными и возврат объекта new_client"""
@@ -73,57 +83,42 @@ def add_client():
         client_email = valid_email(user_input())
         adding_client = Client(client_name, client_number, client_email)
         ready_client = adding_client.to_dict()
-        return ready_client
+        print(ready_client)
+        return Client(client_name, client_number, client_email)
 
 
-def save_client(saving_client):
+def save_client(Client):
     """Создание и запись клиента с данными от пользователя"""
-    with open("clients.json", "r") as file:
-        data = json.load(file)
-        data.append(saving_client)
-    with open("clients.json", "w") as file:
-        json.dump(data, file, indent=4)
+    cur.execute('INSERT INTO clients (name, number, email) VALUES (%s, %s, %s)', (Client.name, Client.number, Client.email))
+    conn.commit()
     print("Клиент сохранен!")
 
 @consolidate
-def delete_client(client):
-    with open("clients.json", "r") as file:
-        data = json.load(file)
-        data.remove(client.to_dict())
-    with open("clients.json", "w") as file:
-        json.dump(data, file, indent=4)
-        print("Клиент удален...")
+def delete_client(choose):
+    cur.execute('DELETE FROM clients WHERE id = %s', (choose,))
+    conn.commit()
+    print("Клиент удален...")
 
 def delete_finding_client():
     client_list()
-    print ('Введите номер клиента, которого хотите удалить...')
-    choose = valid_number(user_input())
-    client_to_delete = None
-    with open("clients.json", "r") as file:
-        response = json.load(file)
-        for client in response:
-            if choose == str(client["number"]):
-                client_to_delete = Client(**client)
-                print(client_to_delete.to_dict())
-                break
-
+    print ('Выберете ID клиента которого хотите удалить..')
+    choose = valid_id(user_input())
+    cur.execute('SELECT * FROM clients WHERE id = %s', (choose,))
+    client_to_delete = cur.fetchone()
     if client_to_delete is None:
         print("Клиент не обнаружен")
     else:
-        delete_client(client_to_delete)
-
-
-
-
+        print(f"ID: {client_to_delete[0]} \nИмя: {client_to_delete[1]}\nНомер: {client_to_delete[2]}\nПочта: {client_to_delete[3]}\n")
+        delete_client(choose)
 
 
 def client_list():
     """Вывод списка клиентов"""
-    with open("clients.json", "r") as file:
-        response = json.load(file)
-        for client in response:
-            print('\nИмя: ', client["name"], '\nНомер телефона: ', client["number"], '\nEmail: ',
-                  client["email"])
+    cur.execute('SELECT * FROM clients')
+    clients = cur.fetchall()
+    for person in clients:
+        print(f"ID: {person[0]} \nИмя: {person[1]}\nНомер: {person[2]}\nПочта: {person[3]}\n")
+
 
 def search_input():
     """Введение параметра для поиска"""
@@ -133,31 +128,22 @@ def search_input():
 
 def find_client(search_info):
     """Поиск клиента по параметру(работает по всем полям)"""
-    with open("clients.json", "r") as file:
-        response = json.load(file)
-        found = []
-        for client in response:
-            client_obj = Client(**client)
-            if re.search(re.escape(search_info), str(client_obj.to_dict()), re.I):
-                    found.append(client_obj)
+    cur.execute("""SELECT * FROM clients
+                   WHERE CAST(id AS text) LIKE %s 
+                      OR name LIKE %s
+                      OR number LIKE %s
+                      OR email LIKE %s
+                """,(f"%{search_info}%",) * 4)
+    found = cur.fetchall()
     return found
 
 def show_finding_client(found):
     """Отображение найденных клиентов с помощью поиска"""
     if found :
-        for client in found:
-            print('Имя клиента: ', client.name,'\n''Номер клиента: ',client.number,'\n''Емейл клиента: ', client.email, '\n')
+        for person in found:
+            print(f"ID: {person[0]} \nИмя: {person[1]}\nНомер: {person[2]}\nПочта: {person[3]}\n")
     else :
         print('Совпадений не найдено')
-
-def check_data():
-    """Проверка наличия файла json"""
-    try:
-        with open("clients.json", "r") as file:
-            json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        with open("clients.json", "w") as file:
-            file.write("[]")
 
 def menu():
     """Вызов меню
@@ -166,7 +152,6 @@ def menu():
     3 - Поиск клиента
     4 - удаление клиента по номеру
     0 - Выход из программы"""
-    check_data()
     while True:
         print ("\n""Выберете операцию: "
             "\nЧтобы добавить клиента в базу, введите 1"
@@ -185,6 +170,8 @@ def menu():
             delete_finding_client()
         elif choose == "0":
             print('Завершение программы...')
+            cur.close()
+            conn.close()
             break
         else:
             print("Вы ввели что-то не так")

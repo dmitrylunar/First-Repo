@@ -1,6 +1,8 @@
 from database import get_connection
 from models import Client
+import datetime
 from utils import consolidate
+from validators import valid_name, valid_number, valid_email, valid_id
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -9,10 +11,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def add_client():
-    import datetime
     print("Дата записи: ", datetime.date.today())
     print("Введите данные о клиенте...")
-    from validators import valid_name, valid_number, valid_email
     name = valid_name(input("Имя клиента: "))
     number = valid_number(input("Номер клиента: "))
     email = valid_email(input("Емейл клиента: "))
@@ -63,7 +63,6 @@ def find_client(search_info):
     return found
 
 def delete_finding_client():
-    from validators import valid_id
     client_list()
     print('Выберете ID клиента которого хотите удалить..')
     choose = valid_id(input("Ввод: "))
